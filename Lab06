@@ -78,27 +78,32 @@ def parse_request():
     Parses the request sent by the client, stores data from the request line
     and headers in a dictionary
     :return:
+    :author: Lauren Lee 
     """
-    read_req_line()
+    read_req_line()  # just calling the method
 
-    read_headers()
+    read_headers()  # just calling the method
 
 
-def read_req_line():
+def read_req_line(host, resource):
     """
     TODO unfinshed method
     Parses the request line and stores the data
     :return:
+    :author: Lauren Lee 
     """
-    pass
+    request = b'GET ' + resource + b' HTTP/1.1\r\n' + b'Host: ' + host + b'\r\n\r\n'
+
 
 
 def read_headers():
     """
     TODO unfinished method
     Reads all headers from the request, stores them in a dictionary. Name = key, value = value
-    :return:
+    :return: returns the dictionary 
+    :author: Lauren Lee  
     """
+
     pass
 
 
@@ -107,6 +112,7 @@ def respond():
     TODO unfinished method
     Sends a response to the client with the given resource
     :return:
+    :author: Joe Casper
     """
     send_status_line()
 
@@ -120,6 +126,7 @@ def send_status_line():
     TODO unfinished method
     Sends a status line to the client
     :return:
+    :author: Lauren Lee 
     """
     pass
 
@@ -129,6 +136,7 @@ def store_response_lines():
     TODO unfinished method
     Writes headers for the response message
     :return:
+    :author: Joe Casper 
     """
     pass
 
@@ -138,6 +146,7 @@ def send_response():
     TODO unfinished method
     Sends the response to the client
     :return:
+    :author: Joe Casper 
     """
     pass
 
@@ -158,6 +167,7 @@ def next_byte(data_socket):
     :author: Joe Casper
     """
     return data_socket.recv(1)
+
 
 # **todo Do not modify code below this line.  You should add additional helper methods above this line.
 
