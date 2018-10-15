@@ -65,6 +65,11 @@ def handle_request(request_socket):
 
     :param request_socket: socket representing TCP connection from the HTTP client_socket
     :return: None
+    #ex:  thisdict = {}
+    #accessing by using square brackets []
+    #save the headers through dictionary
+    dict["header"] is like a key = "test" - setting the value of the key
+    getting the value x= dict["header]
     """
 
     parse_request()
@@ -78,33 +83,53 @@ def parse_request():
     Parses the request sent by the client, stores data from the request line
     and headers in a dictionary
     :return:
-    :author: Lauren Lee 
+    :author: Lauren Lee
     """
-    read_req_line()  # just calling the method
+    read_request_line()  # just calling the method
 
     read_headers()  # just calling the method
 
-
-def read_req_line(host, resource):
+def read_request_line(request_socket):
     """
     TODO unfinshed method
     Parses the request line and stores the data
     :return:
-    :author: Lauren Lee 
+    :author: Lauren Lee
     """
-    request = b'GET ' + resource + b' HTTP/1.1\r\n' + b'Host: ' + host + b'\r\n\r\n'
+    resources = b''
+    read_start_line_of_header(request_socket)
+    byte = next_byte(request_socket)
+    while not byte == b"\x20":
+        resources += byte
+        byte = next_byte(request_socket)
+    read_last_line__of_header(request_socket)
+    return resources.decode("ASCII")
 
+
+def read_start_line_of_header():
+    """
+    TODO MAYBE GOING TO CHANGE UP THE METHODS 
+    :return: 
+    """
+    
+    
+def read_last_line__of_header():
+    """
+    TODO MAYBE!!! 
+    :return: 
+    """
 
 
 def read_headers():
     """
     TODO unfinished method
-    Reads all headers from the request, stores them in a dictionary. Name = key, value = value
-    :return: returns the dictionary 
-    :author: Lauren Lee  
+    Reads all headers from the request, stores them in a dictionary. Name of the headers = key, value = value
+    :return: returns the dictionary
+    :author: Lauren Lee
     """
-
-    pass
+    timestamp = datetime.datetime.utcnow()
+    # Sun, 06 Nov 1994 08:49:37 GMT
+    timestring = timestamp.strftime('%a, %d %b %Y %H:%M:%S GMT')
 
 
 def respond():
@@ -126,9 +151,8 @@ def send_status_line():
     TODO unfinished method
     Sends a status line to the client
     :return:
-    :author: Lauren Lee 
+    :author: Lauren Lee
     """
-    pass
 
 
 def store_response_lines():
@@ -136,7 +160,7 @@ def store_response_lines():
     TODO unfinished method
     Writes headers for the response message
     :return:
-    :author: Joe Casper 
+    :author: Joe Casper
     """
     pass
 
@@ -146,7 +170,7 @@ def send_response():
     TODO unfinished method
     Sends the response to the client
     :return:
-    :author: Joe Casper 
+    :author: Joe Casper
     """
     pass
 
@@ -167,6 +191,17 @@ def next_byte(data_socket):
     :author: Joe Casper
     """
     return data_socket.recv(1)
+
+
+def open_to_file(file_name, message):
+    """
+
+    :return:
+    :author: Lauren Lee
+    """
+    reader = open(file_name, "rb")
+    reader.read(message)
+    reader.close()
 
 
 # **todo Do not modify code below this line.  You should add additional helper methods above this line.
