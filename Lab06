@@ -65,29 +65,50 @@ def handle_request(request_socket):
 
     :param request_socket: socket representing TCP connection from the HTTP client_socket
     :return: None
-    #ex:  thisdict = {}
+    #example:  thisdict = {}
     #accessing by using square brackets []
     #save the headers through dictionary
     dict["header"] is like a key = "test" - setting the value of the key
     getting the value x= dict["header]
     """
+    response = b'HTTP/1.1'
+    status = b'200 OK\r\n'
+    #need to call whatever method I used to read the request line
+    resources = read_request_line(request_socket)
+    if resources == './':
+        resources = "index.html"
+    headers = read_headers(request_socket)
+    print(headers)
+    timestamp = datetime.datetime.utcnow()
+    timestring = timestamp.strftime('%a, %d %b %Y %H:%M:%S GMT')
+    response_header = dict()
+    response_header[b'Connection: '] = b'close\r\n'
+    response_header[b'Date: '] = timestring.encode() + b'\r\n'
+    payload = b''
+    try :
+        file = open(resources, 'rb')
+        length = get_file_size(resources)
+        if not length is None:
+            response_header[b'Content-Length: '] = (str(length) + '\r\n').encode()
+        else:
+            response_header[b'Content-Lenght: '] = b'0\r\n' #the content-length there is nothing there
 
-    parse_request()
+        payload = file.read()
+    except FileNotFoundError:
+        status = b'404 NOT FOUND\r\n'
+        response_header[b'Content-Length '] = b'0\r\n'
+    resources += status
+    for key in response_header:
+        response += key + response_header[key]
+        response += b'\r\n'
+        request_socket.send(response)
+        request_socket.close()
 
-    respond()
 
+# parse_request()
 
-def parse_request():
-    """
-    TODO unfinished method
-    Parses the request sent by the client, stores data from the request line
-    and headers in a dictionary
-    :return:
-    :author: Lauren Lee
-    """
-    read_request_line()  # just calling the method
+# respond()
 
-    read_headers()  # just calling the method
 
 def read_request_line(request_socket):
     """
@@ -97,39 +118,54 @@ def read_request_line(request_socket):
     :author: Lauren Lee
     """
     resources = b''
-    read_start_line_of_header(request_socket)
+    read_start_request_line(request_socket)
     byte = next_byte(request_socket)
     while not byte == b"\x20":
         resources += byte
         byte = next_byte(request_socket)
-    read_last_line__of_header(request_socket)
+    read_last_request_line(request_socket)
     return resources.decode("ASCII")
 
 
-def read_start_line_of_header():
+def read_start_request_line(request_socket):
     """
-    TODO MAYBE GOING TO CHANGE UP THE METHODS 
-    :return: 
+    TODO MAYBE GOING TO CHANGE UP THE METHODS
+    :return:
+    """
+    byte = next_byte(request_socket)
+    while not byte == b'\x20':
+        byte = next_byte(request_socket)
+
+def read_last_request_line():
+    """
+    #
+    TODO MAYBE!!!
+    :return:
     """
     
-    
-def read_last_line__of_header():
-    """
-    TODO MAYBE!!! 
-    :return: 
-    """
 
 
 def read_headers():
     """
     TODO unfinished method
     Reads all headers from the request, stores them in a dictionary. Name of the headers = key, value = value
+    but checking if the two the bytes are \r\n stop reading lines not the case loop read bytes until the colon
     :return: returns the dictionary
     :author: Lauren Lee
     """
-    timestamp = datetime.datetime.utcnow()
-    # Sun, 06 Nov 1994 08:49:37 GMT
-    timestring = timestamp.strftime('%a, %d %b %Y %H:%M:%S GMT')
+
+
+# def parse_request():
+#     """
+#     TODO unfinished method
+#     Parses the request sent by the client, stores data from the request line
+#     and headers in a dictionary
+#     :return:
+#     :author: Lauren Lee
+#     """
+#     read_request_line()  # just calling the method
+#
+#     read_headers()  # just calling the method
 
 
 def respond():
@@ -193,15 +229,17 @@ def next_byte(data_socket):
     return data_socket.recv(1)
 
 
-def open_to_file(file_name, message):
-    """
-
-    :return:
-    :author: Lauren Lee
-    """
-    reader = open(file_name, "rb")
-    reader.read(message)
-    reader.close()
+# def open_to_file(file_name):
+#     """
+#
+#     :return:
+#     :author: Lauren Lee
+#     """
+#     reader = open(file_name, "rb")
+#     size = get_file_size(file_name)
+#     messages = reader.read(size)
+#     reader.close()
+#     return messages
 
 
 # **todo Do not modify code below this line.  You should add additional helper methods above this line.
