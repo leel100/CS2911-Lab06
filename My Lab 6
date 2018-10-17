@@ -1,0 +1,270 @@
+"""
+- CS2911 - 022
+- Fall 2018
+- Lab 6
+- Names:
+  - Joe Casper
+  - Lauren Lee
+
+A simple HTTP server
+"""
+
+import socket
+import re
+import threading
+import os
+import mimetypes
+import datetime
+
+
+def main():
+    """ Start the server """
+    http_server_setup(8080)
+
+
+def http_server_setup(port):
+    """
+    Start the HTTP server
+    - Open the listening socket
+    - Accept connections and spawn processes to handle requests
+
+    :param port: listening port number
+    """
+
+    num_connections = 10
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    listen_address = ('', port)
+    server_socket.bind(listen_address)
+    server_socket.listen(num_connections)
+
+    try:
+        while True:
+            request_socket, request_address = server_socket.accept()
+            print('connection from {0} {1}'.format(request_address[0], request_address[1]))
+            # Create a new thread, and set up the handle_request method and its argument (in a tuple)
+            # request_handler = threading.Thread(target=handle_request, args=(request_socket,))
+            # Start the request handler thread.
+            # request_handler.start()
+            handle_request(request_socket)
+            # Just for information, display the running threads (including this main one)
+            # print('threads: ', threading.enumerate())
+    # Set up so a Ctrl-C should terminate the server; this may have some problems on Windows
+    except KeyboardInterrupt:
+        print("HTTP server exiting . . .")
+        # print('threads: ', threading.enumerate())
+        server_socket.close()
+
+
+def handle_request(request_socket):
+    """
+    Handle a single HTTP request, running on a newly started thread.
+
+    Closes request socket after sending response.
+
+    Should include a response header indicating NO persistent connection
+
+    :param request_socket: socket representing TCP connection from the HTTP client_socket
+    :return: None
+    #ex:  thisdict = {}
+    #accessing by using square brackets []
+    #save the headers through dictionary
+    dict["header"] is like a key = "test" - setting the value of the key
+    getting the value x= dict["header]
+    """
+
+    parse_request()
+
+    respond(request_socket)
+
+
+def parse_request():
+    """
+    TODO unfinished method
+    Parses the request sent by the client, stores data from the request line
+    and headers in a dictionary
+    :return:
+    :author: Lauren Lee
+    """
+    read_request_line()  # just calling the method
+
+    read_headers()  # just calling the method
+
+
+def read_request_line(request_socket):
+    """
+    TODO unfinished method
+    Parses the request line and stores the data
+    :return:
+    :author: Lauren Lee
+    """
+    resources = b''
+    read_start_line_of_header(request_socket)
+    byte = next_byte(request_socket)
+    while not byte == b"\x20":
+        resources += byte
+        byte = next_byte(request_socket)
+    read_last_line__of_header(request_socket)
+    return resources.decode("ASCII")
+
+
+def read_start_line_of_header():
+    """
+    TODO MAYBE GOING TO CHANGE UP THE METHODS
+    :return:
+    """
+
+
+def read_last_line__of_header():
+    """
+    TODO MAYBE!!!
+    :return:
+    """
+
+
+def read_headers():
+    """
+    TODO unfinished method
+    Reads all headers from the request, stores them in a dictionary. Name of the headers = key, value = value
+    :return: returns the dictionary
+    :author: Lauren Lee
+    """
+    timestamp = datetime.datetime.utcnow()
+    # Sun, 06 Nov 1994 08:49:37 GMT
+    timestring = timestamp.strftime('%a, %d %b %Y %H:%M:%S GMT')
+
+
+def respond(data_socket):
+    """
+    Sends a response to the client with the given resource
+    :return:
+    :author: Joe Casper
+    """
+    # Holds the response
+    response = b''
+
+    # Add the response status to response
+    response += send_status_line()
+
+    # Stores the dictionary of headers
+    headers = store_response_lines()
+
+    # Get the headers out of the dictionary in and into the response
+    for key, value in headers.items():
+        response += key + value
+
+    # Sends the response to the client
+    send_response(data_socket, response)
+
+
+def send_status_line():
+    """
+    Sends a status line to the client
+    :return: the http status response
+    :author: Joe Casper
+    """
+
+    # returns the status line of the response
+    return 'HTTP/1.1 200 OK'
+
+
+def store_response_lines():
+    """
+    Writes headers for the response message
+    :return: a dictionary containing the response headers
+    :author: Joe Casper
+    """
+    # create the dictionary
+    all_headers = {}
+
+    # Get the date and time
+    timestamp = datetime.datetime.utcnow()
+    time_string = timestamp.strftime('%a, %d %b %Y %H:%M:%S GMT')
+
+    # add the headers the the dictionary
+    all_headers.update({b'date_header:': time_string.encode('ASCII')})
+    all_headers.update({b'connection_header:':b'close\r\n'})
+    all_headers.update({b'content_type:':b''}) # todo
+    all_headers.update({b'content_length:' : b'0'}) # todo check
+
+    # return the headers dictionary
+    return all_headers
+
+
+def send_response(data_socket, response):
+    """
+    Sends the response to the client
+    :author: Joe Casper
+    """
+    data_socket.send_all(response)
+
+
+def next_byte(data_socket):
+    """
+    Read the next byte from the socket data_socket.
+
+    Read the next byte from the sender, received over the network.
+    If the byte has not yet arrived, this method blocks (waits)
+      until the byte arrives.
+    If the sender is done sending and is waiting for your response, this method blocks indefinitely.
+
+    :param data_socket: The socket to read from. The data_socket argument should be an open tcp
+                        data connection (either a client socket or a server data socket), not a tcp
+                        server's listening socket.
+    :return: the next byte, as a bytes object with a single byte in it
+    :author: Joe Casper
+    """
+    return data_socket.recv(1)
+
+
+def open_to_file(file_name, message):
+    """
+
+    :return:
+    :author: Lauren Lee
+    """
+    reader = open(file_name, "rb")
+    reader.read(message)
+    reader.close()
+
+
+# **todo Do not modify code below this line.  You should add additional helper methods above this line.
+
+# Utility functions
+# You may use these functions to simplify your code.
+
+
+def get_mime_type(file_path):
+    """
+    Try to guess the MIME type of a file (resource), given its path (primarily its file extension)
+
+    :param file_path: string containing path to (resource) file, such as './abc.html'
+    :return: If successful in guessing the MIME type, a string representing the content type, such as 'text/html'
+             Otherwise, None
+    :rtype: int or None
+    """
+
+    mime_type_and_encoding = mimetypes.guess_type(file_path)
+    mime_type = mime_type_and_encoding[0]
+    return mime_type
+
+
+def get_file_size(file_path):
+    """
+    Try to get the size of a file (resource) as number of bytes, given its path
+
+    :param file_path: string containing path to (resource) file, such as './abc.html'
+    :return: If file_path designates a normal file, an integer value representing the the file size in bytes
+             Otherwise (no such file, or path is not a file), None
+    :rtype: int or None
+    """
+
+    # Initially, assume file does not exist
+    file_size = None
+    if os.path.isfile(file_path):
+        file_size = os.stat(file_path).st_size
+    return file_size
+
+
+main()
+
+# Replace this line with your comments on the lab
