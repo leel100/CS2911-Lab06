@@ -98,7 +98,7 @@ def handle_request(request_socket):
             response_header[b'Content-Lenght: '] = (mimetypes + '\r\n').encode
         else:
             response_header[b'Content-Lenght: '] = b'none\r\n'
-            
+
         payload = file.read()
     except FileNotFoundError:
         status = b'404 NOT FOUND\r\n'
@@ -126,7 +126,7 @@ def read_request_line(request_socket):
     resources = b''
     read_start_request_line(request_socket)
     byte = next_byte(request_socket)
-    while not byte == b"\x20":
+    while not byte == b'\x20'':
         resources += byte
         byte = next_byte(request_socket)
     read_last_request_line(request_socket)
@@ -143,12 +143,26 @@ def read_start_request_line(request_socket):
         byte = next_byte(request_socket)
 
 
-def read_last_request_line():
+def read_last_request_line(request_socket):
     """
     #
     TODO MAYBE!!!
     :return:
     """
+    value = b''
+    first_byte = next_byte(request_socket)
+    second_byte = next_byte(request_socket)
+    if not first_byte == b'\r':
+        value + first_byte
+        #I need to figure out this while loop will work
+    while(not (first_byte == b'\n')) & second_byte == b'\r':
+        if not second_byte == b'\n':
+            value += second_byte
+        first_byte = second_byte
+        second_byte = next_byte(request_socket)
+    return value;
+
+
 
 
 def read_headers():
@@ -161,9 +175,22 @@ def read_headers():
     """
 
 
+
+
+
+# def open_to_file(file_name, message):
+#     """
+#  TODO MAY TAKE OUT
+#     :return:
+#     :author: Lauren Lee
+#     """
+#     reader = open(file_name, "rb")
+#     reader.read(message)
+#     reader.close()
+
 # def parse_request():
 #     """
-#     TODO unfinished method
+#     TODO unfinished method :MAY TAKE OUT
 #     Parses the request sent by the client, stores data from the request line
 #     and headers in a dictionary
 #     :return:
@@ -174,47 +201,70 @@ def read_headers():
 #     read_headers()  # just calling the method
 
 
-def respond():
+
+def respond(data_socket):
     """
-    TODO unfinished method
     Sends a response to the client with the given resource
     :return:
     :author: Joe Casper
     """
-    send_status_line()
+    # Holds the response
+    response = b''
 
-    store_response_lines()
+    # Add the response status to response
+    response += send_status_line()
 
-    send_response()
+    # Stores the dictionary of headers
+    headers = store_response_lines()
+
+    # Get the headers out of the dictionary in and into the response
+    for key, value in headers.items():
+        response += key + value
+
+    # Sends the response to the client
+    send_response(data_socket, response)
 
 
 def send_status_line():
     """
-    TODO unfinished method
     Sends a status line to the client
-    :return:
-    :author: Lauren Lee
+    :return: the http status response
+    :author: Joe Casper
     """
+
+    # returns the status line of the response
+    return 'HTTP/1.1 200 OK'
 
 
 def store_response_lines():
     """
-    TODO unfinished method
     Writes headers for the response message
-    :return:
+    :return: a dictionary containing the response headers
     :author: Joe Casper
     """
-    pass
+    # create the dictionary
+    all_headers = {}
+
+    # Get the date and time
+    timestamp = datetime.datetime.utcnow()
+    time_string = timestamp.strftime('%a, %d %b %Y %H:%M:%S GMT')
+
+    # add the headers the the dictionary
+    all_headers.update({b'date_header:': time_string.encode('ASCII')})
+    all_headers.update({b'connection_header:':b'close\r\n'})
+    all_headers.update({b'content_type:':b''}) # todo
+    all_headers.update({b'content_length:' : b'0'}) # todo check
+
+    # return the headers dictionary
+    return all_headers
 
 
-def send_response():
+def send_response(data_socket, response):
     """
-    TODO unfinished method
     Sends the response to the client
-    :return:
     :author: Joe Casper
     """
-    pass
+    data_socket.send_all(response)
 
 
 def next_byte(data_socket):
@@ -234,18 +284,6 @@ def next_byte(data_socket):
     """
     return data_socket.recv(1)
 
-
-# def open_to_file(file_name):
-#     """
-#
-#     :return:
-#     :author: Lauren Lee
-#     """
-#     reader = open(file_name, "rb")
-#     size = get_file_size(file_name)
-#     messages = reader.read(size)
-#     reader.close()
-#     return messages
 
 
 # **todo Do not modify code below this line.  You should add additional helper methods above this line.
