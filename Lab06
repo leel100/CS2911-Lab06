@@ -75,7 +75,7 @@ def handle_request(request_socket):
     read = read_request_line(request_socket)
     headers = read_headers(request_socket)
     respond(request_socket,read[1])
-    
+
 
 
 
