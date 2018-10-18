@@ -71,98 +71,28 @@ def handle_request(request_socket):
     dict["header"] is like a key = "test" - setting the value of the key
     getting the value x= dict["header]
     """
-    response = b'HTTP/1.1'
-    status = b'200 OK\r\n'
     # need to call whatever method I used to read the request line
-    resources = read_request_line(request_socket)
-    if resources == '/':
-        resources = b'./index.html'
+    read = read_request_line(request_socket)
     headers = read_headers(request_socket)
-    print(headers)
-    timestamp = datetime.datetime.utcnow()
-    timestring = timestamp.strftime('%a, %d %b %Y %H:%M:%S GMT')
-    response_header = dict()
-    response_header[b'Connection: '] = b'close\r\n'
-    response_header[b'Date: '] = timestring.encode() + b'\r\n'
-    payload = b''
-    try:
-        file = open(resources, 'rb')
-        length = get_file_size(resources)
-        if not length is None:
-            response_header[b'Content-Length: '] = (str(length) + '\r\n').encode()
-        else:
-            response_header[b'Content-Length: '] = b'0\r\n'  # the content-length there is nothing there
-        mimetypes = get_mime_type(resources.decode("ASCII"))
-        if not mimetypes is None:
-            response_header[b'Content-Type: '] = (mimetypes + '\r\n').encode()
-        else:
-            response_header[b'Content-Type: '] = b'none\r\n'
-        payload = file.read()
-    except FileNotFoundError:
-        status = b'404 NOT FOUND\r\n'
-        response_header[b'Content-Length '] = b'0\r\n'
+    respond(request_socket,read[1])
+    
 
-    key = b''
-    response += b' ' + status
-    for key in response_header:
-        response += key + response_header[key]
-        response += b'\r\n'
-        request_socket.send(response)
-    request_socket.close()
 
 
 def read_request_line(request_socket):
     """
-    Parses the request line and stores the data
-    :param: request_socket representing TCP connection
-    :return: a str holding  the name of the request resources
-    :author: Lauren Lee
-    """
-    resources = b''
-    read_start_request_line(request_socket)
-    byte = next_byte(request_socket)
-    while not byte == b'\x20':
-        resources += byte
-        byte = next_byte(request_socket)
-    read_last_request_line(request_socket)
-    return resources.decode("ASCII")
-
-
-def read_start_request_line(request_socket):
-    """
     Throws away unnecessary data at the begining of the line
     :param: request_socket representing TCP connection
     """
-    byte = next_byte(request_socket)
-    while not byte == b'\x20':
-        byte = next_byte(request_socket)
-
-
-def read_last_request_line(request_socket):
-    """:
-    Reads to the end of the line, storing and returning
-    everything read before the \r\n
-    :param request_socket representing TCP connection
-    :return: value : a bytes object holding the
-    data before \r\ns
-    """
     value = b''
-    first_byte = next_byte(request_socket)
-    second_byte = next_byte(request_socket)
-    if not first_byte == b'\r':
-        value + first_byte
-        # I need to figure out this while loop will work
-    while (not (first_byte == b'\x0D')) & (not(second_byte == b'\x0A')):
-        if not second_byte == b'\x0D':
-            value += second_byte
-        first_byte = second_byte
-        second_byte = next_byte(request_socket)
-    return value;
+    while not value.endswith(b'\r\n'):
+        value += next_byte(request_socket)
+    value = value.split(b' ')
+    return value
 
 
 def read_headers(request_socket):
     """
-    TODO unfinished method
     Reads all headers from the request, stores them in a dictionary.
     Name of the headers = key, value = value
     but checking if the two the bytes are \r\n stop reading
@@ -171,29 +101,20 @@ def read_headers(request_socket):
     :return: returns the dictionary
     :author: Lauren Lee
     """
-    #TODO
-    response_header = dict()
-    name = b''
     byte = b''
+    header_dict = dict()
 
-    # Run loop while the byte doesn't return a ':'
-    while byte != b':':
-        byte = next_byte(request_socket)
-
-        # Check if the byte is a \r. If it is, this is a blank line, and the headers are over
-        if byte == b'\r':
-            # Advance past the \n as it is not needed
-            next_byte(request_socket)
-            # Returns a blank bytes object, which signals that the headers are over
-            return name
-
-        # If the byte is not a ':', append it to the name
-        if byte != b':':
-            name += byte
+    while not byte.endswith(b'\r\n\r\n'):
+        byte += next_byte(request_socket)
+    byte = byte.split(b'\r\n')
+    for line_number in range(0, len(byte) - 2):
+        line = byte[line_number]
+        line = line.split(b': ')
+        header_dict[line[0]] = line[1]
+    return header_dict
 
 
-
-def respond(data_socket):
+def respond(data_socket, URL):
     """
     Sends a response to the client with the given resource
     :return:
