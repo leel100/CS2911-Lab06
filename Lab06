@@ -94,7 +94,7 @@ def handle_request(request_socket):
             response_header[b'Content-Length: '] = b'0\r\n'  # the content-length there is nothing there
         mimetypes = get_mime_type(resources.decode("ASCII"))
         if not mimetypes is None:
-            response_header[b'Content-Type: '] = (mimetypes + '\r\n').encode
+            response_header[b'Content-Type: '] = (mimetypes + '\r\n').encode()
         else:
             response_header[b'Content-Type: '] = b'none\r\n'
         payload = file.read()
@@ -171,7 +171,7 @@ def read_headers(request_socket):
     """
     response_header = dict()
     byte = b''
-    name_of_header = b''
+    #response_header = dict()
     while byte != b':':
         byte = next_byte(request_socket)
 
@@ -180,34 +180,11 @@ def read_headers(request_socket):
             # Advance past the \n as it is not needed
             next_byte(request_socket)
             # Returns a blank bytes object, which signals that the headers are over
-            return name_of_header
+            return response_header
 
-        # If the byte is not a ':', append it to the name
+        # If the byte is not a ':', append it to the response header
         if byte != b':':
-            name_of_header += byte
-
-
-# def open_to_file(file_name, message):
-#     """
-#  TODO MAY TAKE OUT
-#     :return:
-#     :author: Lauren Lee
-#     """
-#     reader = open(file_name, "rb")
-#     reader.read(message)
-#     reader.close()
-
-# def parse_request():
-#     """
-#     TODO unfinished method :MAY TAKE OUT
-#     Parses the request sent by the client, stores data from the request line
-#     and headers in a dictionary
-#     :return:
-#     :author: Lauren Lee
-#     """
-#     read_request_line()  # just calling the method
-#
-#     read_headers()  # just calling the method
+            response_header += byte
 
 
 def respond(data_socket):
