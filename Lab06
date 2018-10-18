@@ -75,8 +75,8 @@ def handle_request(request_socket):
     status = b'200 OK\r\n'
     # need to call whatever method I used to read the request line
     resources = read_request_line(request_socket)
-    if resources == './':
-        resources = "index.html"
+    if resources == '/':
+        resources = b'./index.html'
     headers = read_headers(request_socket)
     print(headers)
     timestamp = datetime.datetime.utcnow()
@@ -84,7 +84,6 @@ def handle_request(request_socket):
     response_header = dict()
     response_header[b'Connection: '] = b'close\r\n'
     response_header[b'Date: '] = timestring.encode() + b'\r\n'
-
     payload = b''
     try:
         file = open(resources, 'rb')
@@ -92,23 +91,24 @@ def handle_request(request_socket):
         if not length is None:
             response_header[b'Content-Length: '] = (str(length) + '\r\n').encode()
         else:
-            response_header[b'Content-Lenght: '] = b'0\r\n'  # the content-length there is nothing there
-        mimetypes = get_mime_type(resources)
+            response_header[b'Content-Length: '] = b'0\r\n'  # the content-length there is nothing there
+        mimetypes = get_mime_type(resources.decode("ASCII"))
         if not mimetypes is None:
-            response_header[b'Content-Lenght: '] = (mimetypes + '\r\n').encode
+            response_header[b'Content-Type: '] = (mimetypes + '\r\n').encode
         else:
-            response_header[b'Content-Lenght: '] = b'none\r\n'
-
+            response_header[b'Content-Type: '] = b'none\r\n'
         payload = file.read()
     except FileNotFoundError:
         status = b'404 NOT FOUND\r\n'
         response_header[b'Content-Length '] = b'0\r\n'
-    resources += status
+
+    key = b''
+    response += b' ' + status
     for key in response_header:
         response += key + response_header[key]
         response += b'\r\n'
         request_socket.send(response)
-        request_socket.close()
+    request_socket.close()
 
 
 def read_request_line(request_socket):
@@ -153,8 +153,8 @@ def read_last_request_line(request_socket):
     if not first_byte == b'\r':
         value + first_byte
         # I need to figure out this while loop will work
-    while (not (first_byte == b'\n')) & second_byte == b'\r':
-        if not second_byte == b'\n':
+    while (not (first_byte == b'\x0D')) & (not(second_byte == b'\x0A')):
+        if not second_byte == b'\x0D':
             value += second_byte
         first_byte = second_byte
         second_byte = next_byte(request_socket)
