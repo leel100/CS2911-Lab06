@@ -113,9 +113,9 @@ def handle_request(request_socket):
 
 def read_request_line(request_socket):
     """
-    TODO unfinshed method
     Parses the request line and stores the data
-    :return:
+    :param: request_socket representing TCP connection
+    :return: a str holding  the name of the request resources
     :author: Lauren Lee
     """
     resources = b''
@@ -130,9 +130,8 @@ def read_request_line(request_socket):
 
 def read_start_request_line(request_socket):
     """
-    TODO MAYBE GOING TO CHANGE UP THE METHODS
-    throws away unnecessary data at the begining of the line
-    :return:
+    Throws away unnecessary data at the begining of the line
+    :param: request_socket representing TCP connection
     """
     byte = next_byte(request_socket)
     while not byte == b'\x20':
@@ -140,10 +139,10 @@ def read_start_request_line(request_socket):
 
 
 def read_last_request_line(request_socket):
-    """
+    """:
     Reads to the end of the line, storing and returning
     everything read before the \r\n
-    :param request_socket:
+    :param request_socket representing TCP connection
     :return: value : a bytes object holding the
     data before \r\ns
     """
@@ -164,14 +163,20 @@ def read_last_request_line(request_socket):
 def read_headers(request_socket):
     """
     TODO unfinished method
-    Reads all headers from the request, stores them in a dictionary. Name of the headers = key, value = value
-    but checking if the two the bytes are \r\n stop reading lines not the case loop read bytes until the colon
+    Reads all headers from the request, stores them in a dictionary.
+    Name of the headers = key, value = value
+    but checking if the two the bytes are \r\n stop reading
+    lines not the case loop read bytes until the colon
+    :param: request_socket representing TCP connection
     :return: returns the dictionary
     :author: Lauren Lee
     """
+    #TODO
     response_header = dict()
+    name = b''
     byte = b''
-    #response_header = dict()
+
+    # Run loop while the byte doesn't return a ':'
     while byte != b':':
         byte = next_byte(request_socket)
 
@@ -180,11 +185,12 @@ def read_headers(request_socket):
             # Advance past the \n as it is not needed
             next_byte(request_socket)
             # Returns a blank bytes object, which signals that the headers are over
-            return response_header
+            return name
 
-        # If the byte is not a ':', append it to the response header
+        # If the byte is not a ':', append it to the name
         if byte != b':':
-            response_header += byte
+            name += byte
+
 
 
 def respond(data_socket):
